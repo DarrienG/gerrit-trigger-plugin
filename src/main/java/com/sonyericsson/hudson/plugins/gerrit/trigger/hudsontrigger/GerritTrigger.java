@@ -63,11 +63,7 @@ import com.sonymobile.tools.gerrit.gerritevents.GerritHandler;
 import com.sonymobile.tools.gerrit.gerritevents.GerritQueryHandler;
 import com.sonymobile.tools.gerrit.gerritevents.dto.attr.Approval;
 import com.sonymobile.tools.gerrit.gerritevents.dto.attr.Provider;
-import com.sonymobile.tools.gerrit.gerritevents.dto.events.ChangeBasedEvent;
-import com.sonymobile.tools.gerrit.gerritevents.dto.events.CommentAdded;
-import com.sonymobile.tools.gerrit.gerritevents.dto.events.GerritTriggeredEvent;
-import com.sonymobile.tools.gerrit.gerritevents.dto.events.RefUpdated;
-import com.sonymobile.tools.gerrit.gerritevents.dto.events.TopicChanged;
+import com.sonymobile.tools.gerrit.gerritevents.dto.events.*;
 import com.sonymobile.tools.gerrit.gerritevents.dto.rest.Notify;
 
 import hudson.Extension;
@@ -464,7 +460,7 @@ public class GerritTrigger extends Trigger<Job> {
      * @return the job
      */
     Job getJob() {
-        return job;
+        return this.job;
     }
 
     /**
@@ -964,6 +960,16 @@ public class GerritTrigger extends Trigger<Job> {
                 logger.trace("Already triggered.");
                 return false;
             }
+        }
+
+        if (event instanceof RefReplicated || event instanceof RefReplicationDone) {
+            logger.trace("Don't waste your time looking at replication events.");
+            return false;
+        }
+
+        if (event instanceof ReviewerAdded) {
+            logger.trace("No action needed when a reviewer is added.");
+            return false;
         }
 
         if (!shouldTriggerOnEventType(event)) {
